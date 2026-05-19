@@ -1,10 +1,8 @@
 public class Board
 {
-    // The 3x3 grid - stores X or empty
     private char[] cells;
     public bool IsDead { get; private set; }
 
-    // Constructor - creates empty board
     public Board()
     {
         cells = new char[9];
@@ -15,38 +13,47 @@ public class Board
         IsDead = false;
     }
 
-    // Check if a position is empty
     public bool IsEmpty(int position)
     {
         return cells[position - 1] == ' ';
     }
 
-    // Place X on the board
     public void PlaceX(int position)
     {
         cells[position - 1] = 'X';
         CheckIfDead();
     }
 
-    // Check if board has 3 in a row
+    // check if placing X would kill this board
+    public bool WouldKill(int position)
+    {
+        char[] temp = (char[])cells.Clone();
+        temp[position - 1] = 'X';
+
+        if (temp[0] == 'X' && temp[1] == 'X' && temp[2] == 'X') return true;
+        if (temp[3] == 'X' && temp[4] == 'X' && temp[5] == 'X') return true;
+        if (temp[6] == 'X' && temp[7] == 'X' && temp[8] == 'X') return true;
+        if (temp[0] == 'X' && temp[3] == 'X' && temp[6] == 'X') return true;
+        if (temp[1] == 'X' && temp[4] == 'X' && temp[7] == 'X') return true;
+        if (temp[2] == 'X' && temp[5] == 'X' && temp[8] == 'X') return true;
+        if (temp[0] == 'X' && temp[4] == 'X' && temp[8] == 'X') return true;
+        if (temp[2] == 'X' && temp[4] == 'X' && temp[6] == 'X') return true;
+
+        return false;
+    }
+
     private void CheckIfDead()
     {
-        // Check horizontal
         if (cells[0] == 'X' && cells[1] == 'X' && cells[2] == 'X') IsDead = true;
         if (cells[3] == 'X' && cells[4] == 'X' && cells[5] == 'X') IsDead = true;
         if (cells[6] == 'X' && cells[7] == 'X' && cells[8] == 'X') IsDead = true;
-
-        // Check vertical
         if (cells[0] == 'X' && cells[3] == 'X' && cells[6] == 'X') IsDead = true;
         if (cells[1] == 'X' && cells[4] == 'X' && cells[7] == 'X') IsDead = true;
         if (cells[2] == 'X' && cells[5] == 'X' && cells[8] == 'X') IsDead = true;
-
-        // Check diagonal
         if (cells[0] == 'X' && cells[4] == 'X' && cells[8] == 'X') IsDead = true;
         if (cells[2] == 'X' && cells[4] == 'X' && cells[6] == 'X') IsDead = true;
     }
 
-    // Display the board on screen
     public void Display()
     {
         Console.WriteLine(" {0} | {1} | {2} ", cells[0], cells[1], cells[2]);
