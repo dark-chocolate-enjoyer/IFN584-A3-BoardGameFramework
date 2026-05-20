@@ -28,9 +28,7 @@ namespace BoardGameFramework
 
         public override Piece CreatePieceFor(Player player)
         {
-            // Player 1 is X, Player 2 is O
-            if (player.Id == 1) return new XPiece(player.Id);
-            return new OPiece(player.Id);
+            throw new NotImplementedException();
         }
     }
 }
