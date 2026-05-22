@@ -137,6 +137,12 @@ namespace BoardGameFramework
                 string trimmed = input.Trim();
                 string lower = trimmed.ToLower();
 
+                if (lower == "undo" || lower == "u") return "undo";
+                if (lower == "redo" || lower == "r") return "redo";
+                if (lower == "save" || lower == "s") return "save";
+                if (lower == "load" || lower == "l") return "load";
+                if (lower == "quit" || lower == "q") return "quit";
+
                 if (lower == "help" || lower == "h")
                 {
                     MenuResult result = ShowGameMenu(inPlay: true);
@@ -208,7 +214,7 @@ namespace BoardGameFramework
                     case "1":
                     case "save":
                     case "s":
-                        SaveGame();
+                        SaveLoadManager.SaveGameFromMenu(this);
                         return ShowPostSaveMenu();
                     case "2":
                     case "quit":
@@ -219,7 +225,12 @@ namespace BoardGameFramework
                     case "l":
                         if (inPlay)
                         {
-                            LoadGame();
+                            Game? loadedGame = SaveLoadManager.LoadGameFromMenu();
+                            if (loadedGame != null)
+                            {
+                                loadedGame.Play();
+                                return MenuResult.Quit;
+                            }
                             Board.Display();
                             return MenuResult.Continue;
                         }

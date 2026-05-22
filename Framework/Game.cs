@@ -26,7 +26,7 @@ namespace BoardGameFramework
         }
 
         // Main game loop. Keeps running until someone wins or the board is full.
-        public void Play()
+        public virtual void Play()
         {
             while (true)
             {
@@ -54,6 +54,20 @@ namespace BoardGameFramework
                 {
                     RedoMove();
                 }
+                else if (command == "save")
+                {
+                    SaveLoadManager.SaveGameFromMenu(this);
+                }
+                else if (command == "load")
+                {
+                    Game? loadedGame = SaveLoadManager.LoadGameFromMenu();
+                    if (loadedGame != null)
+                    {
+                        loadedGame.Play();
+                        return;
+                    }
+                }
+
                 else if (command == "help")
                 {
                     ShowHelp();
@@ -63,6 +77,7 @@ namespace BoardGameFramework
                     Console.WriteLine("Game ended early.");
                     return;
                 }
+
             }
         }
 
@@ -166,7 +181,7 @@ namespace BoardGameFramework
         // Each game does its own prompt: pick a basic command first. Individual games can override for specific rules and such.
         protected virtual string ReadCommand()
         {
-            Console.Write("Enter command (move / undo / redo / help / quit): ");
+            Console.Write("Enter command (move / undo / redo / save / load / help / quit): ");
             string? input = Console.ReadLine();
             if (input == null) return "";
             return input.Trim().ToLower();
@@ -178,9 +193,140 @@ namespace BoardGameFramework
             Console.WriteLine("  move - make a move");
             Console.WriteLine("  undo - undo the last move");
             Console.WriteLine("  redo - redo a move you undo'd");
+            Console.WriteLine("  save - save the current game as .txt or .json");
+            Console.WriteLine("  load - load a saved game from .txt or .json");
             Console.WriteLine("  help - show this menu");
             Console.WriteLine("  quit - end the game");
             Console.WriteLine();
+        }
+
+
+
+        public virtual GameSaveData CreateSaveData()
+        {
+            return new GameSaveData
+            {
+                GameType = GameType,
+                Rows = Board.Rows,
+                Cols = Board.Cols,
+                CurrentPlayerId = CurrentPlayer.Id,
+                Player1Type = GetPlayerType(Player1),
+                Player2Type = GetPlayerType(Player2),
+                Boards = CreateBoardSaveData(),
+                DoneMoves = CreateMoveSaveData(done, chronological: true),
+                RedoMoves = CreateMoveSaveData(redo, chronological: false)
+            };
+        }
+
+        public virtual void LoadSaveData(GameSaveData saveData)
+        {
+            if (saveData.Boards.Count == 0)
+            {
+                throw new InvalidOperationException("Save file does not contain board data.");
+            }
+
+            RestoreBoard(Board, saveData.Boards[0]);
+            CurrentPlayer = saveData.CurrentPlayerId == Player2.Id ? Player2 : Player1;
+
+            done.Clear();
+            foreach (MoveSaveData moveData in saveData.DoneMoves)
+            {
+                done.Push(CreateMoveFromSaveData(moveData));
+            }
+
+            redo.Clear();
+            for (int i = saveData.RedoMoves.Count - 1; i >= 0; i--)
+            {
+                redo.Push(CreateMoveFromSaveData(saveData.RedoMoves[i]));
+            }
+        }
+
+        protected virtual List<BoardSaveData> CreateBoardSaveData()
+        {
+            return new List<BoardSaveData> { CreateSingleBoardSaveData(Board, 0) };
+        }
+
+        protected BoardSaveData CreateSingleBoardSaveData(Board board, int boardIndex)
+        {
+            BoardSaveData boardData = new BoardSaveData
+            {
+                BoardIndex = boardIndex,
+                Rows = board.Rows,
+                Cols = board.Cols
+            };
+
+            for (int r = 0; r < board.Rows; r++)
+            {
+                for (int c = 0; c < board.Cols; c++)
+                {
+                    Piece? piece = board.GetPiece(r, c);
+                    if (piece != null)
+                    {
+                        boardData.Cells.Add(new CellSaveData
+                        {
+                            Row = r,
+                            Col = c,
+                            OwnerId = piece.OwnerId,
+                            Symbol = piece.Symbol
+                        });
+                    }
+                }
+            }
+
+            return boardData;
+        }
+
+        protected void RestoreBoard(Board board, BoardSaveData boardData)
+        {
+            for (int r = 0; r < board.Rows; r++)
+            {
+                for (int c = 0; c < board.Cols; c++)
+                {
+                    board.RemovePiece(r, c);
+                }
+            }
+
+            foreach (CellSaveData cell in boardData.Cells)
+            {
+                Player owner = cell.OwnerId == Player2.Id ? Player2 : Player1;
+                board.PlacePiece(cell.Row, cell.Col, CreatePieceFor(owner));
+            }
+        }
+
+        protected List<MoveSaveData> CreateMoveSaveData(Stack<Move> stack, bool chronological)
+        {
+            List<Move> moves = new List<Move>(stack);
+
+            if (chronological)
+            {
+                moves.Reverse();
+            }
+
+            List<MoveSaveData> moveData = new List<MoveSaveData>();
+            foreach (Move move in moves)
+            {
+                moveData.Add(new MoveSaveData
+                {
+                    Row = move.Row,
+                    Col = move.Col,
+                    BoardIndex = move.BoardIndex,
+                    OwnerId = move.Piece.OwnerId,
+                    Symbol = move.Piece.Symbol
+                });
+            }
+
+            return moveData;
+        }
+
+        protected virtual Move CreateMoveFromSaveData(MoveSaveData moveData)
+        {
+            Player owner = moveData.OwnerId == Player2.Id ? Player2 : Player1;
+            return new Move(moveData.Row, moveData.Col, CreatePieceFor(owner), moveData.BoardIndex);
+        }
+
+        protected string GetPlayerType(Player player)
+        {
+            return player is ComputerPlayer ? "Computer" : "Human";
         }
 
         // Each game defines its own rules for the following functions, you can add more if you see fit.
