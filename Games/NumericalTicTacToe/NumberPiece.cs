@@ -12,7 +12,10 @@ namespace BoardGameFramework
 
         public override string Symbol
         {
-            get { return Value.ToString(); }
+            get
+            {
+                return Value.ToString();
+            }
         }
     }
 }
