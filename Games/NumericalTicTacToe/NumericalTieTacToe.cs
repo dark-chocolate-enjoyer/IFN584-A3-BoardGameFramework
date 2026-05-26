@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace BoardGameFramework
 {
@@ -8,8 +7,6 @@ namespace BoardGameFramework
     {
         private int size;
         private int targetSum;
-
-        private HashSet<int> usedNumbers = new HashSet<int>();
 
         public NumericalTicTacToe(
             int size,
@@ -44,7 +41,9 @@ namespace BoardGameFramework
                     string? input = Console.ReadLine();
 
                     if (input == null)
+                    {
                         continue;
+                    }
 
                     string[] parts = input.Split(' ');
 
@@ -98,18 +97,18 @@ namespace BoardGameFramework
                 return false;
             }
 
-            if (usedNumbers.Contains(number))
+            if (IsNumberUsed(number))
             {
                 return false;
             }
 
-            // Player 1 -> odd
+            // Player 1 uses odd numbers
             if (move.Piece.OwnerId == 1 && number % 2 == 0)
             {
                 return false;
             }
 
-            // Player 2 -> even
+            // Player 2 uses even numbers
             if (move.Piece.OwnerId == 2 && number % 2 != 0)
             {
                 return false;
@@ -118,41 +117,32 @@ namespace BoardGameFramework
             return true;
         }
 
-        public override void ApplyMove(Move move)
+        private bool IsNumberUsed(int number)
         {
-            NumberPiece piece = (NumberPiece)move.Piece;
-
-            usedNumbers.Add(piece.Value);
-
-            base.ApplyMove(move);
-        }
-
-        public override void UndoMove()
-        {
-            if (done.Count == 0)
+            for (int r = 0; r < Board.Rows; r++)
             {
-                Console.WriteLine("Nothing to undo.");
-                return;
+                for (int c = 0; c < Board.Cols; c++)
+                {
+                    Piece? piece = Board.GetPiece(r, c);
+
+                    if (piece is NumberPiece numPiece)
+                    {
+                        if (numPiece.Value == number)
+                        {
+                            return true;
+                        }
+                    }
+                }
             }
 
-            Move last = done.Pop();
-
-            NumberPiece piece = (NumberPiece)last.Piece;
-
-            usedNumbers.Remove(piece.Value);
-
-            last.Undo(Board);
-
-            redo.Push(last);
-
-            SwitchPlayer();
+            return false;
         }
 
         public override bool IsGameOver(out Player? winner)
         {
             winner = null;
 
-            // Rows
+            // Check rows
             for (int r = 0; r < size; r++)
             {
                 if (CheckLine(GetRow(r), out int owner))
@@ -162,7 +152,7 @@ namespace BoardGameFramework
                 }
             }
 
-            // Cols
+            // Check columns
             for (int c = 0; c < size; c++)
             {
                 if (CheckLine(GetCol(c), out int owner))
@@ -180,7 +170,9 @@ namespace BoardGameFramework
                 Piece? p = Board.GetPiece(i, i);
 
                 if (p == null)
+                {
                     break;
+                }
 
                 diag1.Add(p);
             }
@@ -200,7 +192,9 @@ namespace BoardGameFramework
                 Piece? p = Board.GetPiece(i, size - 1 - i);
 
                 if (p == null)
+                {
                     break;
+                }
 
                 diag2.Add(p);
             }
@@ -212,6 +206,7 @@ namespace BoardGameFramework
                 return true;
             }
 
+            // Draw
             if (Board.IsFull())
             {
                 return true;
@@ -220,9 +215,7 @@ namespace BoardGameFramework
             return false;
         }
 
-        private bool CheckLine(
-            List<Piece> pieces,
-            out int owner)
+        private bool CheckLine(List<Piece> pieces, out int owner)
         {
             owner = 0;
 
