@@ -67,7 +67,7 @@ namespace BoardGameFramework
         }
 
         // Apply a move and switch turn. Clears redo because a new branch starts here.
-        public void ApplyMove(Move move)
+        public virtual void ApplyMove(Move move)
         {
             move.Execute(Board);
             Console.WriteLine(GetMoveDescription(move));
@@ -76,7 +76,7 @@ namespace BoardGameFramework
             SwitchPlayer();
         }
 
-        public void UndoMove()
+        public virtual void UndoMove()
         {
             if (done.Count == 0)
             {
@@ -89,7 +89,7 @@ namespace BoardGameFramework
             SwitchPlayer();
         }
 
-        public void RedoMove()
+        public virtual void RedoMove()
         {
             if (redo.Count == 0)
             {
