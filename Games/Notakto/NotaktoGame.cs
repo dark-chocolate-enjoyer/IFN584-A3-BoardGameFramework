@@ -134,7 +134,7 @@ namespace BoardGameFramework
                 }
             }
 
-            return new NotaktoMove(row, col, 
+            return new NotaktoMove(row, col,
                 CreatePieceFor(player), boardIndex);
         }
 
@@ -212,7 +212,7 @@ namespace BoardGameFramework
             ApplyMove(next);
         }
 
-        public new void Play()
+        public override void Play()
         {
             Console.WriteLine("Welcome to Notakto!");
             Console.WriteLine("Both players place X.");
@@ -257,6 +257,89 @@ namespace BoardGameFramework
                 }
             }
         }
+
+
+
+        public override GameSaveData CreateSaveData()
+        {
+            GameSaveData data = new GameSaveData
+            {
+                GameType = GameType,
+                Rows = 3,
+                Cols = 3,
+                CurrentPlayerId = CurrentPlayer.Id,
+                Player1Type = GetPlayerType(Player1),
+                Player2Type = GetPlayerType(Player2),
+                Boards = new List<BoardSaveData>(),
+                DoneMoves = CreateMoveSaveData(done, chronological: true),
+                RedoMoves = CreateMoveSaveData(redo, chronological: false)
+            };
+
+            for (int i = 0; i < subBoards.Length; i++)
+            {
+                data.Boards.Add(CreateSingleBoardSaveData(subBoards[i], i));
+            }
+
+            data.Extra["BoardDead"] = string.Join(",", boardDead);
+            data.Extra["LoserId"] = loser == null ? "0" : loser.Id.ToString();
+            return data;
+        }
+
+        public override void LoadSaveData(GameSaveData saveData)
+        {
+            if (saveData.Boards.Count != 3)
+            {
+                throw new InvalidOperationException("Notakto save file must contain three boards.");
+            }
+
+            foreach (BoardSaveData boardData in saveData.Boards)
+            {
+                if (boardData.BoardIndex < 0 || boardData.BoardIndex >= subBoards.Length)
+                {
+                    throw new InvalidOperationException("Notakto save file contains an invalid board index.");
+                }
+
+                RestoreBoard(subBoards[boardData.BoardIndex], boardData);
+            }
+
+            if (saveData.Extra.TryGetValue("BoardDead", out string? boardDeadText))
+            {
+                string[] values = boardDeadText.Split(',');
+                for (int i = 0; i < boardDead.Length && i < values.Length; i++)
+                {
+                    boardDead[i] = bool.TryParse(values[i], out bool result) && result;
+                }
+            }
+            else
+            {
+                for (int i = 0; i < boardDead.Length; i++)
+                {
+                    boardDead[i] = CheckThreeInARow(subBoards[i]);
+                }
+            }
+
+            loser = null;
+            if (saveData.Extra.TryGetValue("LoserId", out string? loserIdText) && int.TryParse(loserIdText, out int loserId))
+            {
+                if (loserId == Player1.Id) loser = Player1;
+                if (loserId == Player2.Id) loser = Player2;
+            }
+
+            CurrentPlayer = saveData.CurrentPlayerId == Player2.Id ? Player2 : Player1;
+
+            done.Clear();
+            foreach (MoveSaveData moveData in saveData.DoneMoves)
+            {
+                done.Push(CreateMoveFromSaveData(moveData));
+            }
+
+            redo.Clear();
+            for (int i = saveData.RedoMoves.Count - 1; i >= 0; i--)
+            {
+                redo.Push(CreateMoveFromSaveData(saveData.RedoMoves[i]));
+            }
+        }
+
 
         private void DisplayAllBoards()
         {
