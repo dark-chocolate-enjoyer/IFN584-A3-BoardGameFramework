@@ -133,7 +133,7 @@ namespace BoardGameFramework
             return moves;
         }
 
-        // Simulate the move, check if it wins, then take it back. Most games shouldnt need to override this I thin.
+        // simulate the move, check if it wins, then take it back. Most games shouldnt need to override this I thin.
         public virtual bool IsWinningMove(Move move, Player player)
         {
             Move test = move.Clone();
