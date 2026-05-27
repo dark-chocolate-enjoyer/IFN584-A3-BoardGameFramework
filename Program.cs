@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace BoardGameFramework
 {
@@ -60,7 +60,6 @@ namespace BoardGameFramework
 
                 Console.WriteLine();
                 Console.WriteLine("Game finished.");
-
                 Console.WriteLine();
             }
         }
@@ -72,8 +71,8 @@ namespace BoardGameFramework
                 return new TicTacToe(player1, player2);
             }
             else if (choice == "2")
-            // Default size for NumericalTicTacToe is 3
             {
+                // Default size for NumericalTicTacToe is 3.
                 return new NumericalTicTacToe(3, player1, player2);
             }
             else if (choice == "3")
