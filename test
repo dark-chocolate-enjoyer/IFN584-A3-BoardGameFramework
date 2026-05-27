@@ -1,0 +1,34 @@
+{
+  "GameType": "Connect Four",
+  "CurrentPlayerId": 2,
+  "Rows": 6,
+  "Cols": 7,
+  "BoardRows": [
+    ".,.,.,.,.,.,.",
+    ".,.,.,.,.,.,.",
+    ".,.,.,.,.,.,.",
+    ".,.,.,.,.,.,.",
+    "R,.,.,.,.,.,.",
+    "R,Y,.,.,.,.,."
+  ],
+  "DoneMoves": [
+    {
+      "PlayerId": 1,
+      "Row": 5,
+      "Col": 0,
+      "Symbol": "R"
+    },
+    {
+      "PlayerId": 2,
+      "Row": 5,
+      "Col": 1,
+      "Symbol": "Y"
+    },
+    {
+      "PlayerId": 1,
+      "Row": 4,
+      "Col": 0,
+      "Symbol": "R"
+    }
+  ]
+}
