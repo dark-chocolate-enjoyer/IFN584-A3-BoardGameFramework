@@ -478,9 +478,8 @@ namespace BoardGameFramework
             foreach (SavedMoveData savedMove in savedMoves)
             {
                 Piece piece = new Disc(savedMove.PlayerId);
-                // Use a normal Move here, not ConnectFourMove. The saved row is
-                // already the actual landed row, so undo/redo should restore that
-                // exact board state rather than recalculating gravity.
+                // Use a normal Move here, not ConnectFourMove. The saved row is already the actual landed row, so undo/redo should restore that
+                //exact board state rather than recalculating gravity.
                 Move move = new Move(savedMove.Row, savedMove.Col, piece);
                 done.Push(move);
             }
@@ -507,11 +506,6 @@ namespace BoardGameFramework
             Console.WriteLine("  loadjson - load this Connect Four game from a JSON file");
             Console.WriteLine("  help - show this menu");
             Console.WriteLine("  quit - end the game");
-            Console.WriteLine();
-            Console.WriteLine("When prompted for a move, enter a column number from 1 to 7.");
-            Console.WriteLine("Discs fall to the lowest empty space in that column.");
-            Console.WriteLine("Loading a Connect Four save restores the board, current player and undo history.");
-            Console.WriteLine("Redo history is cleared when a saved game is loaded.");
             Console.WriteLine();
         }
 
