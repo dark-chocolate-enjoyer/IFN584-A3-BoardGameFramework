@@ -39,6 +39,14 @@ namespace BoardGameFramework
                 }
 
                 Console.WriteLine($"{CurrentPlayer.Name}'s turn.");
+
+                if (CurrentPlayer is ComputerPlayer)
+                {
+                    Move move = CurrentPlayer.GetMove(this);
+                    ApplyMove(move);
+                    continue;
+                }
+
                 string command = ReadCommand();
 
                 if (command == "move")
@@ -54,39 +62,23 @@ namespace BoardGameFramework
                 {
                     RedoMove();
                 }
-                else if (command == "save" || command == "savetxt")
-                {
-                    SaveText();
-                }
-                else if (command == "load" || command == "loadtxt")
-                {
-                    LoadText();
-                }
-                else if (command == "savejson")
-                {
-                    SaveJson();
-                }
-                else if (command == "loadjson")
-                {
-                    LoadJson();
-                }
                 else if (command == "help")
                 {
                     ShowHelp();
                 }
                 else if (command == "quit")
                 {
-                    Console.WriteLine("Game ended early");
+                    Console.WriteLine("Game ended early.");
                     return;
                 }
                 else
                 {
-                    Console.WriteLine("Unknown command");
+                    Console.WriteLine("Unknown command. Type help to see available commands.");
                 }
             }
         }
 
-        // Apply a move and switch turn.
+        // Apply a move and switch turn. Clears redo because a new branch starts here.
         public virtual void ApplyMove(Move move)
         {
             move.Execute(Board);
@@ -120,27 +112,6 @@ namespace BoardGameFramework
             next.Execute(Board);
             done.Push(next);
             SwitchPlayer();
-        }
-
-        // Override these methods to create your own save/load functionality for your game.
-        protected virtual void SaveText()
-        {
-            Console.WriteLine("Text save is not implemented for this game.");
-        }
-
-        protected virtual void LoadText()
-        {
-            Console.WriteLine("Text load is not implemented for this game.");
-        }
-
-        protected virtual void SaveJson()
-        {
-            Console.WriteLine("JSON save is not implemented for this game.");
-        }
-
-        protected virtual void LoadJson()
-        {
-            Console.WriteLine("JSON load is not implemented for this game.");
         }
 
         // default check: try every empty cell as a possible move for this player.
@@ -207,7 +178,7 @@ namespace BoardGameFramework
         // Each game does its own prompt: pick a basic command first. Individual games can override for specific rules and such.
         protected virtual string ReadCommand()
         {
-            Console.Write("Enter command (move / undo / redo / save / load / savejson / loadjson / help / quit): ");
+            Console.Write("Enter command (move / undo / redo / help / quit): ");
             string? input = Console.ReadLine();
             if (input == null) return "";
             return input.Trim().ToLower();
@@ -219,10 +190,6 @@ namespace BoardGameFramework
             Console.WriteLine("  move - make a move");
             Console.WriteLine("  undo - undo the last move");
             Console.WriteLine("  redo - redo a move you undo'd");
-            Console.WriteLine("  save or savetxt - save the game as a text file");
-            Console.WriteLine("  load or loadtxt - load the game from a text file");
-            Console.WriteLine("  savejson - save the game as a JSON file");
-            Console.WriteLine("  loadjson - load the game from a JSON file");
             Console.WriteLine("  help - show this menu");
             Console.WriteLine("  quit - end the game");
             Console.WriteLine();

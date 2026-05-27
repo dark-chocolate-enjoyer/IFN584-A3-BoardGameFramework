@@ -27,17 +27,12 @@ namespace BoardGameFramework
 
         public override void Undo(Board board)
         {
-            // normally landedRow is set by Execute. Row is used as a fallback
-            // so undo still works if a saved Connect Four move is restored with
-            // its actual landed row already known.
-            int rowToClear = landedRow >= 0 ? landedRow : Row;
-
-            if (board.IsInBounds(rowToClear, Col))
+            // only clear if we actually placed something
+            if (landedRow >= 0)
             {
-                board.RemovePiece(rowToClear, Col);
+                board.RemovePiece(landedRow, Col);
+                landedRow = -1;
             }
-
-            landedRow = -1;
         }
 
         public override Move Clone()
