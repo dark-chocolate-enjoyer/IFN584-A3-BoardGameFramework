@@ -215,9 +215,28 @@ namespace BoardGameFramework
                 Console.WriteLine("Game over. It is a draw.");
         }
 
+        protected override string ReadCommand()
+        {
+            Console.Write("Enter command (move / undo / redo / save / load / help / quit): ");
+            string? input = Console.ReadLine();
+            if (input == null) return "";
+            string cmd = input.Trim().ToLower();
+            if (cmd == "save") { SaveText(); return ""; }
+            if (cmd == "load") { LoadText(); return ""; }
+            return cmd;
+        }
+
         protected override void ShowHelp()
         {
-            base.ShowHelp();
+            Console.WriteLine("Commands:");
+            Console.WriteLine("  move - make a move");
+            Console.WriteLine("  undo - undo last move");
+            Console.WriteLine("  redo - redo undone move");
+            Console.WriteLine("  save - save game to file");
+            Console.WriteLine("  load - load game from file");
+            Console.WriteLine("  help - show this menu");
+            Console.WriteLine("  quit - end the game");
+            Console.WriteLine();
             Console.WriteLine("Notakto rules:");
             Console.WriteLine("  Both players place X on any of 3 boards");
             Console.WriteLine("  When a board gets 3 in a row it is DEAD");
@@ -225,19 +244,17 @@ namespace BoardGameFramework
             Console.WriteLine();
         }
 
-        protected override void SaveText()
+        private void SaveText()
         {
             Console.Write("Enter filename to save (press Enter for 'notakto_save.txt'): ");
             string? input = Console.ReadLine();
             string path = string.IsNullOrWhiteSpace(input) ? "notakto_save.txt" : input.Trim();
-
             try
             {
                 List<string> lines = new List<string>();
                 lines.Add("Notakto");
                 lines.Add(CurrentPlayer.Id.ToString());
                 lines.Add($"{boardDead[0]} {boardDead[1]} {boardDead[2]}");
-
                 for (int bi = 0; bi < 3; bi++)
                 {
                     for (int r = 0; r < 3; r++)
@@ -251,7 +268,6 @@ namespace BoardGameFramework
                         lines.Add(string.Join(" ", cells));
                     }
                 }
-
                 File.WriteAllLines(path, lines);
                 Console.WriteLine($"Game saved to '{path}'.");
             }
@@ -261,35 +277,29 @@ namespace BoardGameFramework
             }
         }
 
-        protected override void LoadText()
+        private void LoadText()
         {
             Console.Write("Enter filename to load (press Enter for 'notakto_save.txt'): ");
             string? input = Console.ReadLine();
             string path = string.IsNullOrWhiteSpace(input) ? "notakto_save.txt" : input.Trim();
-
             if (!File.Exists(path))
             {
                 Console.WriteLine($"No save file found at '{path}'.");
                 return;
             }
-
             try
             {
                 string[] lines = File.ReadAllLines(path);
-
                 if (lines[0].Trim() != "Notakto")
                 {
                     Console.WriteLine("That is not a valid Notakto save file.");
                     return;
                 }
-
                 int turnId = int.Parse(lines[1].Trim());
                 CurrentPlayer = turnId == Player1.Id ? Player1 : Player2;
-
                 string[] deadFlags = lines[2].Trim().Split(' ');
                 for (int bi = 0; bi < 3; bi++)
                     boardDead[bi] = bool.Parse(deadFlags[bi]);
-
                 int lineIndex = 3;
                 for (int bi = 0; bi < 3; bi++)
                 {
@@ -305,7 +315,6 @@ namespace BoardGameFramework
                         lineIndex++;
                     }
                 }
-
                 done.Clear();
                 redo.Clear();
                 Console.WriteLine($"Game loaded from '{path}'. It's {CurrentPlayer.Name}'s turn.");
@@ -316,18 +325,13 @@ namespace BoardGameFramework
                 Console.WriteLine($"Could not load: {ex.Message}");
             }
         }
-
-        private void DisplayAllBoards_Internal() { }
     }
 
     public class NotaktoBoard : Board
     {
         private NotaktoGame? game;
-
         public NotaktoBoard() : base(3, 3) { }
-
         public void SetGame(NotaktoGame g) { game = g; }
-
         public override void Display()
         {
             game?.DisplayAllBoards();
